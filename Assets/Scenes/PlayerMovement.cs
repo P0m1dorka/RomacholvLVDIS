@@ -3,7 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using Unity.VisualScripting;
+using UnityEditor.Sequences;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class PlayerMovement : MonoBehaviour
@@ -11,47 +13,53 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private Rigidbody rb;
     [SerializeField] private Camera _camera;
     [SerializeField] private float speed;
-
+    [SerializeField] private float rotationSpeed;
     [SerializeField] private TMP_Text _text;
     [SerializeField] private int pickObj;
     [SerializeField] private int max;
-    [SerializeField] private float jumpSpeed;
-    [SerializeField] private Transform lavaPos;
-    private float vertical;
-    private Vector3 screenMousePostion;
-    private Vector3 worldMousePos;
-    private float horizonata;
-    // Start is called before the first frame update
-    void Start()
+    
+    private Vector3 movement;
+    private Vector3 movementDirection;
+    public float movementSpeed = 5f;
+    public float jumpForce = 5f;
+    
+
+    private void Start()
     {
-        
+        rb = GetComponent<Rigidbody>();
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Update()
     {
-     /*   Vector3 mousePosition = Input.mousePosition;
-        mousePosition = _camera.ScreenToWorldPoint(new Vector3(mousePosition.x, mousePosition.y, _camera.transform.position.y - transform.position.y));
+        float moveHorizontal = Input.GetAxis("Horizontal");
+        float moveVertical = Input.GetAxis("Vertical");
 
-        Vector3 lookAtPosition = new Vector3(mousePosition.x, transform.position.y, mousePosition.z);
-        transform.LookAt(lookAtPosition);
+        // Перемещение
+        Vector3 movement = new Vector3(moveHorizontal, 0f, moveVertical) * movementSpeed * Time.deltaTime;
+        rb.MovePosition(transform.position + movement);
 
-        transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(lookAtPosition - transform.position), 0.3f * Time.deltaTime);
-       */// screenMousePostion = Input.mousePosition;
-       // worldMousePos = _camera.ScreenToWorldPoint(screenMousePostion);
-        //gameObject.transform.LookAt(worldMousePos);
-      
-
-        // Примените полученное движение к компоненту Rigidbody для перемещения персонажа
-        //   rb.MovePosition(rb.position + movement * Time.fixedDeltaTime);
-        vertical = Input.GetAxis("Vertical");
-        horizonata = Input.GetAxis("Horizontal");
-        rb.position += (new Vector3(horizonata, 0f, vertical) * speed * Time.deltaTime);
-        if (Input.GetKeyUp(KeyCode.Space))
+        // Поворот
+        if (moveHorizontal != 0 || moveVertical != 0)
         {
-            rb.AddForce(0,jumpSpeed,0,ForceMode.Impulse);
+            Vector3 newDirection = new Vector3(moveHorizontal, 0f, moveVertical);
+            Quaternion toRotation = Quaternion.LookRotation(newDirection);
+            transform.rotation = Quaternion.RotateTowards(transform.rotation, toRotation, rotationSpeed * Time.deltaTime);
         }
 
+        // Прыжок
+        if (Input.GetButtonDown("Jump") && Mathf.Abs(rb.velocity.y) < 0.01f)
+        {
+            rb.AddForce(new Vector3(0f, jumpForce, 0f), ForceMode.Impulse);
+        }
+    }
+
+
+    private void OnCollisionEnter(Collision other)
+    {
+        if (other.gameObject.CompareTag("TriggeLva"))
+        {
+            SceneManager.LoadScene("LEVEL");
+        }
     }
 
     private void OnTriggerEnter(Collider other)
@@ -60,10 +68,7 @@ public class PlayerMovement : MonoBehaviour
         {
             other.gameObject.GetComponent<BlockScript>().PowerOn();
         }
-        else if (other.gameObject.CompareTag("TriggeLva"))
-        {
-            gameObject.transform.position = lavaPos.position;
-        }
+        
     }
 
     private void OnTriggerStay(Collider other)
@@ -78,7 +83,7 @@ public class PlayerMovement : MonoBehaviour
                 Destroy(other.gameObject);
                 if (pickObj >= max)
                 {
-                    Debug.Log("end");
+                    SceneManager.LoadScene("EndScene");
                 }
             }
         }
