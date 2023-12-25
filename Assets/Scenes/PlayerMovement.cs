@@ -17,8 +17,8 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private int pickObj;
     [SerializeField] private int max;
  
-    
-    }
+  
+  
     private void OnCollisionEnter(Collision other)
     {
         if (other.gameObject.CompareTag("TriggeLva"))
@@ -44,7 +44,7 @@ public class PlayerMovement : MonoBehaviour
             {
                 Debug.Log("PICKUP");
                 pickObj++;
-                _text.text = $"Picked{pickObj}";
+                _text.text = $"Picked {pickObj}";
                 Destroy(other.gameObject);
                 if (pickObj >= max)
                 {
