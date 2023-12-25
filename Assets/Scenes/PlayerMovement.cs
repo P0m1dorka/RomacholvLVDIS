@@ -17,12 +17,11 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private TMP_Text _text;
     [SerializeField] private int pickObj;
     [SerializeField] private int max;
-    
-    private Vector3 movement;
-    private Vector3 movementDirection;
     public float movementSpeed = 5f;
+    //public float rotationSpeed = 100f;
     public float jumpForce = 5f;
     
+   // private Rigidbody rb;
 
     private void Start()
     {
@@ -52,8 +51,6 @@ public class PlayerMovement : MonoBehaviour
             rb.AddForce(new Vector3(0f, jumpForce, 0f), ForceMode.Impulse);
         }
     }
-
-
     private void OnCollisionEnter(Collision other)
     {
         if (other.gameObject.CompareTag("TriggeLva"))
