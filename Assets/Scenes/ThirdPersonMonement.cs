@@ -4,45 +4,55 @@ using UnityEngine;
 
 public class ThirdPersonMonement : MonoBehaviour
 {
-    public CharacterController controller;
-    public Transform cam;
-    public float speed = 5f;
-    public float turnSMoothTime = 0.1f;
-    private float turnSmoothVElocity;
-    public Rigidbody rb;
+    public CharacterController characterController;
+    public Transform cameraTransform;
+    public float movementSpeed = 5f;
+    public float rotationSpeed = 5f;
     public float jumpForce = 5f;
-    public float gravity;
-    private Vector3 moveDir;
-    private float targetAngle;
-    private float angle;
-    private Vector3 moveVElocity;
-    
-    
-    // Update is called once per frame
+    public float gravity = 20f;
+
+    private Vector3 moveDirection;
+    private bool isJumping = false;
+
+    void Start()
+    {
+        characterController = GetComponent<CharacterController>();
+        cameraTransform = Camera.main.transform;
+    }
+
     void Update()
     {
-        float horizontal = Input.GetAxisRaw("Horizontal");
-        float vertical = Input.GetAxisRaw("Vertical");
-        Vector3 direction = new Vector3(horizontal, 0f, vertical).normalized;
+        // Получение ввода от игрока
+        float horizontalInput = Input.GetAxis("Horizontal");
+        float verticalInput = Input.GetAxis("Vertical");
+        bool jumpInput = Input.GetKeyDown(KeyCode.Space);
 
-        if (direction.magnitude >= 0.1)
+        // Прыжок
+        if (characterController.isGrounded)
         {
-             targetAngle = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg + cam.eulerAngles.y;
-             angle = Mathf.SmoothDamp(transform.eulerAngles.y, targetAngle, ref turnSmoothVElocity,
-                turnSMoothTime);
-            transform.rotation = Quaternion.Euler(0f, angle, 0f);
-             moveDir = Quaternion.Euler(0f, targetAngle, 0f) * Vector3.forward;
-            controller.Move(moveDir.normalized * speed * Time.deltaTime);
-            moveVElocity = transform.forward * speed * vertical;
+            isJumping = false;
+            moveDirection = new Vector3(horizontalInput, 0f, verticalInput);
+            moveDirection = cameraTransform.TransformDirection(moveDirection);
+            moveDirection *= movementSpeed;
+
+            // Вращение персонажа в направлении движения камеры
+            Quaternion rot = Quaternion.LookRotation(cameraTransform.forward, Vector3.up);
+            transform.rotation = Quaternion.Slerp(transform.rotation, rot, rotationSpeed * Time.deltaTime);
+
+            // Применение гравитации
+            moveDirection.y = 0f;
+
+            // Прыжок
+            if (jumpInput)
+            {
+                moveDirection.y = jumpForce;
+                isJumping = true;
+            }
         }
 
-        if (Input.GetKeyDown(KeyCode.Space) && controller.isGrounded)
-        {
-            moveVElocity.y = jumpForce;
-            moveVElocity.y += gravity * Time.deltaTime;
-            controller.Move(moveVElocity * Time.deltaTime);
-        }
-        
+        moveDirection.y -= gravity * Time.deltaTime;
+
+        // Передвижение персонажа
+        characterController.Move(moveDirection * Time.deltaTime);
     }
-    
 }
