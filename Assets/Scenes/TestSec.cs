@@ -8,18 +8,6 @@ public class TestSec : MonoBehaviour
     [SerializeField] private TMP_Text _text;
     [SerializeField] private int pickObj;
     [SerializeField] private int max;
- 
-  
-  
-    private void OnCollisionEnter(Collision other)
-    {
-        if (other.gameObject.CompareTag("TriggeLva"))
-        {
-            Debug.Log("pivo");
-            SceneManager.LoadScene("LEVEL");
-            Debug.Log("vodka");
-        }
-    }
 
     private void OnTriggerEnter(Collider other)
     {
@@ -27,7 +15,11 @@ public class TestSec : MonoBehaviour
         {
             other.gameObject.GetComponent<BlockScript>().PowerOn();
         }
-        
+
+        if (other.gameObject.CompareTag("TriggeLva"))
+        {
+            SceneManager.LoadScene("LEVEL");
+        }
     }
 
     private void OnTriggerStay(Collider other)
